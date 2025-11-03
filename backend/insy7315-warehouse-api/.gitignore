@@ -1,0 +1,97 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.py.class
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Environment / Secrets ---
+.env
+*.env
+.env.*
+secrets.json
+
+# --- IDE / Editor files ---
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# --- Byte-compiled / Cache ---
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# --- Build / Dist ---
+build/
+dist/
+*.egg-info/
+.eggs/
+MANIFEST
+*.spec
+
+# --- Coverage / Testing ---
+.coverage
+.tox/
+.nox/
+.cache/
+pytest_cache/
+htmlcov/
+
+# --- PyInstaller ---
+# Usually these files are written by PyInstaller
+# to store configuration and build info
+*.manifest
+*.spec
+
+# --- FastAPI / Uvicorn ---
+*.pid
+*.sock
+
+# --- Jupyter / Notebooks ---
+.ipynb_checkpoints
+*.ipynb
+
+# --- Temporary files ---
+*.tmp
+*.bak
+*.swp
+*~
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Database dumps ---
+*.sql
+*.bak
+*.dump
+*.db
+
+# --- Local data ---
+local_data/
+temp/
+tmp/
+
+# --- OS metadata ---
+Thumbs.db
+ehthumbs.db
+Icon?
