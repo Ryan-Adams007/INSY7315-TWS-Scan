@@ -166,7 +166,7 @@ class StockTakingActivity : AppCompatActivity() {
     }
 }
 
-/* ---------------------------- Models & Adapter ---------------------------- */
+/* ---------------------------- `Models.kt` & Adapter ---------------------------- */
 
 private data class StockItem(
     val name: String,
