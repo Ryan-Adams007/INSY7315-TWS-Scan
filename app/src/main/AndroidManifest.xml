@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="za.tws.scan">
 
     <application
         android:allowBackup="true"
@@ -12,6 +13,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TWSScan">
         <activity
+            android:name=".StockTakingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DeliveryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PackingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PickingActivity"
+            android:exported="false" /> <!-- MainActivity is now the startup window -->
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -19,7 +32,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity> <!-- LoginActivity (secondary, no launcher intent) -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

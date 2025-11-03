@@ -1,5 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- ──────────────── CORE COLORS ──────────────── -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- ──────────────── BRAND & ACCENTS ──────────────── -->
+    <color name="colorPrimary">#C6001C</color>      <!-- Brand Red -->
+    <color name="colorSecondary">#0073B1</color>    <!-- Action Blue -->
+
+    <!-- ──────────────── FUNCTIONAL COLORS ──────────────── -->
+    <color name="colorSuccess">#27AE60</color>      <!-- Green success -->
+    <color name="colorWarning">#F39C12</color>      <!-- Amber warning -->
+    <color name="colorError">#E74C3C</color>        <!-- Red error -->
+
+    <!-- ──────────────── SURFACES ──────────────── -->
+    <color name="colorBackground">#F8F9FA</color>   <!-- App background -->
+    <color name="colorSurface">#FFFFFF</color>      <!-- Cards/panels -->
+
+    <!-- ──────────────── TEXT COLORS ──────────────── -->
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#616161</color>
+
+    <!-- ──────────────── DIVIDERS / BORDERS ──────────────── -->
+    <color name="dividerColor">#E0E0E0</color>
+
+    <!-- ──────────────── CHIP COLOR SCHEME ──────────────── -->
+    <!-- Neutral / "All" -->
+    <color name="chipNeutralBackground">#F5F5F5</color>
+    <color name="chipNeutralBorder">#E0E0E0</color>
+    <color name="chipNeutralText">#212121</color>
+
+    <!-- Amber / "To Load" -->
+    <color name="chipAmberBackground">#FFF3E0</color>
+    <color name="chipAmberBorder">#FFB300</color>
+    <color name="chipAmberText">#E65100</color>
+
+    <!-- Green / "Loaded" -->
+    <color name="chipGreenBackground">#E8F5E9</color>
+    <color name="chipGreenBorder">#43A047</color>
+    <color name="chipGreenText">#1B5E20</color>
 </resources>

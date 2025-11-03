@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
+
+    <!-- AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        app:elevation="4dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            style="@style/Widget.Material3.Toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:title="Picking"
+            app:titleTextColor="@color/white"
+            app:menu="@menu/menu_global"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Serial input with Scan end icon -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSerial"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Scan or enter serial"
+                app:boxBackgroundColor="@color/colorSurface"
+                app:boxStrokeColor="@color/dividerColor"
+                app:endIconMode="custom"
+                app:endIconDrawable="@android:drawable/ic_menu_camera"
+                app:endIconContentDescription="Scan">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtSerial"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textNoSuggestions"
+                    android:maxLines="1"
+                    android:textColor="@color/textPrimary"
+                    android:textColorHint="@color/textSecondary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Quantity stepper -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Quantity"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"/>
+
+                <include
+                    android:id="@+id/btnQtyMinus"
+                    layout="@layout/view_round_button_minus" />
+
+                <TextView
+                    android:id="@+id/txtQty"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"/>
+
+                <include
+                    android:id="@+id/btnQtyPlus"
+                    layout="@layout/view_round_button_plus" />
+            </LinearLayout>
+
+            <!-- Add to list -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnScanConfirm"
+                style="@style/Tws.PrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Add to Pick"/>
+
+            <!-- Recent scans -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Recent scans"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerScans"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Complete Pick button -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabCompletePick"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Complete Pick"
+        android:textColor="@color/white"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="Complete pick"
+        app:icon="@drawable/ic_done"
+        app:iconTint="@color/white"
+        app:iconPadding="8dp"
+        app:iconGravity="start"
+        app:backgroundTint="@color/colorSecondary"
+        android:layout_gravity="bottom|end"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
