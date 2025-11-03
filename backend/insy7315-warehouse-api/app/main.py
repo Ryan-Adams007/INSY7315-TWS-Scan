@@ -1,11 +1,11 @@
 # app/main.py
-
 from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env at startup
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, picking, packing, delivery, stock, dbdiag
+from app.routers import auth, picking, packing, delivery, stock, dbdiag, pack_staging
 
 
 # Initialize FastAPI app
@@ -31,15 +31,22 @@ app.add_middleware(
 def healthz():
     return {"ok": True, "env": "batcave"}
 
+
 # Register routers
 app.include_router(auth.router)
 app.include_router(picking.router)
 app.include_router(packing.router)
+app.include_router(pack_staging.router)  # new staging bridge between picking & packing
 app.include_router(delivery.router)
 app.include_router(stock.router)
 app.include_router(dbdiag.router)
 
+
 # Startup event
 @app.on_event("startup")
 async def startup_event():
+    api_key = os.getenv("API_KEY", "")
+    masked_key = api_key[:4] + "****" if api_key else "(missing)"
     print("WarehouseOps API started. Environment: batcave")
+    print("Routers loaded: auth, picking, packing, pack_staging, delivery, stock, dbdiag")
+    print(f"Loaded API_KEY: {masked_key}")

@@ -87,7 +87,6 @@
                             app:checkedIconVisible="false"
                             app:closeIconVisible="false"/>
 
-                        <!-- Reusable round scan button -->
                         <include
                             android:id="@+id/btnScanPackage"
                             layout="@layout/view_round_button_scan"
@@ -118,6 +117,50 @@
                             android:text="Weight: –"
                             android:textColor="@color/textSecondary"/>
                     </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- WHAT TO PACK (staged lines) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardWhatToPack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/colorSurface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/dividerColor"
+                app:strokeWidth="1dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/txtStagedTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="What to pack"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/textPrimary"/>
+
+                    <TextView
+                        android:id="@+id/txtStagedSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="0 lines, 0 remaining"
+                        android:textColor="@color/textSecondary"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerStaged"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -55,7 +55,6 @@ class LoginActivity : AppCompatActivity() {
             .writeTimeout(20, TimeUnit.SECONDS)
             .build()
 
-        // Moshi with KotlinJsonAdapterFactory so @Body conversion works
         val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
@@ -100,8 +99,17 @@ class LoginActivity : AppCompatActivity() {
                 val resp: LoginResponse = api.login(LoginRequest(email, password))
                 Log.d(TAG, "login response: ok=${resp.ok}, user=${resp.user.Email}, tokenPrefix=${resp.access_token.take(12)}")
                 if (resp.ok && resp.access_token.isNotBlank()) {
-                    saveAuth(resp.access_token, resp.user.Name, resp.user.Email)
-                    Log.i(TAG, "Login success for ${resp.user.Email}")
+                    val userId = resp.user.UserId
+                    if (userId <= 0) {
+                        Log.w(TAG, "Login returned invalid userId=$userId")
+                    }
+                    saveAuth(
+                        token = resp.access_token,
+                        name = resp.user.Name,
+                        email = resp.user.Email,
+                        userId = userId
+                    )
+                    Log.i(TAG, "Login success for ${resp.user.Email} (userId=$userId)")
                     goToMain() // navigate on success
                 } else {
                     Log.e(TAG, "Login failed: ok=${resp.ok} emptyToken=${resp.access_token.isBlank()}")
@@ -131,12 +139,14 @@ class LoginActivity : AppCompatActivity() {
         Log.d(TAG, "setLoading($loading)")
     }
 
-    private fun saveAuth(token: String, name: String, email: String) {
+    // UPDATED: also persist userId for picking session API
+    private fun saveAuth(token: String, name: String, email: String, userId: Int) {
         getSharedPreferences("auth", Context.MODE_PRIVATE).edit()
             .putString("access_token", token)
             .putString("name", name)
             .putString("email", email)
+            .putInt("userId", userId)
             .apply()
-        Log.d(TAG, "Auth saved for $email (tokenLen=${token.length})")
+        Log.d(TAG, "Auth saved for $email (userId=$userId, tokenLen=${token.length})")
     }
 }
