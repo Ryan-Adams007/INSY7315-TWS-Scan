@@ -104,4 +104,38 @@ interface ApiService {
     suspend fun packValidate(
         @Query("packingId") packingId: Int
     ): ValidationResponse
+
+
+    // ---------- STOCK TAKING ----------
+    @GET("stock/health")
+    suspend fun stockHealth(): Map<String, Any>
+
+    @POST("stock/start")
+    suspend fun stockStart(
+        @Query("userId") userId: Int,
+        @Query("name") name: String? = null
+    ): StockSession
+
+    @GET("stock/{stockTakeId}/items")
+    suspend fun stockListItems(
+        @Path("stockTakeId") stockTakeId: Int,
+        @Query("search") search: String? = null
+    ): StockListResponse
+
+    @POST("stock/add")
+    suspend fun stockAdd(
+        @Query("stockTakeId") stockTakeId: Int,
+        @Query("barcodeOrSku") barcodeOrSku: String,
+        @Query("qty") qty: Int = 1
+    ): StockItemUpdate
+
+    @POST("stock/{stockTakeId}/undo-last")
+    suspend fun stockUndoLast(
+        @Path("stockTakeId") stockTakeId: Int
+    ): StockItemUpdate
+
+    @POST("stock/{stockTakeId}/finish")
+    suspend fun stockFinish(
+        @Path("stockTakeId") stockTakeId: Int
+    ): StockFinishResponse
 }

@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
@@ -24,24 +25,46 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import za.tws.scan.net.ApiClient
+import za.tws.scan.net.ApiService
+import za.tws.scan.net.StockItem as NetStockItem
+import za.tws.scan.net.StockListResponse
+import za.tws.scan.net.StockSession
 
 class StockTakingActivity : AppCompatActivity() {
 
-    // --- Views that might exist in your activity_stock_taking.xml (all null-safe lookups) ---
+    // --- Views you already had ---
     private var recycler: RecyclerView? = null
     private var scanBtn: MaterialButton? = null
     private var tilSearch: TextInputLayout? = null
     private var edtSearch: TextInputEditText? = null
 
-    // --- Data ---
+    // Current-product card views (from your XML)
+    private var txtProductTitle: TextView? = null
+    private var txtExpected: TextView? = null
+    private var txtCounted: TextView? = null
+    private var progressCount: LinearProgressIndicator? = null
+    private var tilScan: TextInputLayout? = null
+    private var edtScan: TextInputEditText? = null
+    private var btnAddCount: MaterialButton? = null
+    private var btnUndoCount: MaterialButton? = null
+
+    // --- Data for your adapter ---
     private val allItems = mutableListOf<StockItem>()
     private val visibleItems = mutableListOf<StockItem>()
     private var adapter: StockAdapter? = null
 
+    // --- API / session ---
+    private lateinit var api: ApiService
+    private var stockTakeId: Int? = null
+    private val userId: Int by lazy { intent.getIntExtra("USER_ID", 6) } // default for local dev
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Keep content below system bars (no overlap)
         WindowCompat.setDecorFitsSystemWindows(window, true)
         setContentView(R.layout.activity_stock_taking)
 
@@ -49,60 +72,55 @@ class StockTakingActivity : AppCompatActivity() {
         val toolbar: MaterialToolbar = findViewById(R.id.toolbar)
         val appBar: AppBarLayout = findViewById(R.id.appbar)
         setSupportActionBar(toolbar)
+        // Ensure no subtitle is shown under the main title
+        supportActionBar?.subtitle = null
 
-        // Status bar color
         window.statusBarColor = ContextCompat.getColor(this, R.color.colorPrimary)
-
-        // Apply top inset to AppBar only
-        ViewCompat.setOnApplyWindowInsetsListener(appBar) { view, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(appBar) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            view.setPadding(view.paddingLeft, systemBars.top, view.paddingRight, view.paddingBottom)
+            v.setPadding(v.paddingLeft, systemBars.top, v.paddingRight, v.paddingBottom)
             insets
         }
 
-        // --- Bind optional views if they exist in your layout ---
+        // Bind list/search you already had
         recycler = findViewById(R.id.recyclerStock)
-        scanBtn = findViewById(R.id.btnScan)
+        scanBtn = findViewById(R.id.btnScan) // optional include in your layout
         tilSearch = findViewById(R.id.tilSearch)
         edtSearch = findViewById(R.id.edtSearch)
 
-        // --- Seed demo data ---
-        seedDemoData()
+        // Bind current-product card controls from your XML
+        txtProductTitle = findViewById(R.id.txtProductTitle)
+        txtExpected = findViewById(R.id.txtExpected)
+        txtCounted = findViewById(R.id.txtCounted)
+        progressCount = findViewById(R.id.progressCount)
+        tilScan = findViewById(R.id.tilScan)
+        edtScan = findViewById(R.id.edtScan)
+        btnAddCount = findViewById(R.id.btnAddCount)
+        btnUndoCount = findViewById(R.id.btnUndoCount)
 
-        // --- Setup Recycler (if present) ---
+        // API client (X-API-Key handled by ApiClient interceptors)
+        api = ApiClient.create { null }
+
+        // Recycler kept as-is, but row taps call the API now
         recycler?.let { rv ->
             rv.layoutManager = LinearLayoutManager(this)
             adapter = StockAdapter(visibleItems) { item, action ->
                 when (action) {
-                    RowAction.Increment -> {
-                        if (item.counted < item.expected) {
-                            item.counted++
-                            adapter?.notifyItemChanged(visibleItems.indexOf(item))
-                        } else {
-                            Toast.makeText(this, "Already at expected count", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                    RowAction.Decrement -> {
-                        if (item.counted > 0) {
-                            item.counted--
-                            adapter?.notifyItemChanged(visibleItems.indexOf(item))
-                        }
-                    }
+                    RowAction.Increment -> addCountBySku(item.sku)
+                    RowAction.Decrement -> undoLast()
                 }
             }
             rv.adapter = adapter
         }
 
-        // --- Scan button (optional) ---
+        // Scan round include (if you later wire camera)
         scanBtn?.setOnClickListener {
-            Toast.makeText(this, "Open scanner to count an item...", Toast.LENGTH_SHORT).show()
-            // Later: jump to camera; on result, find SKU and increment that row.
+            Toast.makeText(this, "Open scanner…", Toast.LENGTH_SHORT).show()
         }
 
-        // --- Search polish (optional) ---
+        // Search polish (unchanged)
         tilSearch?.isEndIconVisible = false
         tilSearch?.setEndIconOnClickListener { edtSearch?.setText("") }
-
         edtSearch?.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) = Unit
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -111,7 +129,133 @@ class StockTakingActivity : AppCompatActivity() {
                 filterList(s?.toString().orEmpty())
             }
         })
+
+        // Add/Undo buttons on the current-product card
+        btnAddCount?.setOnClickListener {
+            val code = edtScan?.text?.toString()?.trim().orEmpty()
+            if (code.isBlank()) {
+                Toast.makeText(this, "Scan or enter a barcode/SKU", Toast.LENGTH_SHORT).show()
+            } else {
+                addCountByBarcode(code)
+            }
+        }
+        btnUndoCount?.setOnClickListener { undoLast() }
+
+        // Start server session and load initial list
+        startSession()
     }
+
+    /* ---------------------------- API wiring ---------------------------- */
+
+    private fun startSession() {
+        lifecycleScope.launch {
+            try {
+                val session: StockSession = withContext(Dispatchers.IO) {
+                    api.stockStart(userId = userId, name = null)
+                }
+                stockTakeId = session.StockTakeId
+
+                // Removed the subtitle so nothing renders under the title
+                // supportActionBar?.subtitle = session.Name
+
+                loadItems()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@StockTakingActivity, "Failed to start stock take", Toast.LENGTH_LONG).show()
+                // Fallback demo data
+                seedDemoData()
+            }
+        }
+    }
+
+    private fun loadItems(search: String? = null) {
+        val id = stockTakeId ?: return
+        lifecycleScope.launch {
+            try {
+                val resp: StockListResponse = withContext(Dispatchers.IO) {
+                    api.stockListItems(stockTakeId = id, search = search)
+                }
+                allItems.clear()
+                allItems += resp.items.map { it.toViewModel() }
+                filterList(edtSearch?.text?.toString().orEmpty())
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@StockTakingActivity, "Failed to load items", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Add by barcode from the card input
+    private fun addCountByBarcode(code: String) {
+        val id = stockTakeId ?: return
+        lifecycleScope.launch {
+            try {
+                val updatedNet: NetStockItem = withContext(Dispatchers.IO) {
+                    api.stockAdd(stockTakeId = id, barcodeOrSku = code, qty = 1)
+                }
+                val updated = updatedNet.toViewModel()
+                // Update current-product card with Expected/Counted
+                renderCurrent(updated)
+                // Merge into list (add or replace)
+                upsertRow(updated)
+            } catch (e: Exception) {
+                val msg = e.message ?: ""
+                val friendly =
+                    if (msg.contains("52012", true) || msg.contains("No product", true))
+                        "Unknown barcode/SKU"
+                    else "Failed to add count"
+                Toast.makeText(this@StockTakingActivity, friendly, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Add by tapping a row (+1 via its SKU)
+    private fun addCountBySku(sku: String) {
+        addCountByBarcode(sku)
+    }
+
+    private fun undoLast() {
+        val id = stockTakeId ?: return
+        lifecycleScope.launch {
+            try {
+                val updatedNet: NetStockItem = withContext(Dispatchers.IO) {
+                    api.stockUndoLast(stockTakeId = id)
+                }
+                val updated = updatedNet.toViewModel()
+                renderCurrent(updated)   // show the item that was actually affected
+                upsertRow(updated)
+            } catch (_: Exception) {
+                Toast.makeText(this@StockTakingActivity, "Nothing to undo", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /* ---------------------------- UI helpers ---------------------------- */
+
+    private fun renderCurrent(item: StockItem) {
+        txtProductTitle?.text = "${item.name} (${item.sku})"
+        txtExpected?.text = "Expected: ${item.expected}"
+        txtCounted?.text = "Counted: ${item.counted}"
+        val pct = if (item.expected <= 0) 0 else (item.counted * 100 / item.expected).coerceIn(0, 100)
+        progressCount?.max = 100
+        progressCount?.setProgress(pct, true)
+    }
+
+    private fun upsertRow(updated: StockItem) {
+        val idxAll = allItems.indexOfFirst { it.sku == updated.sku }
+        if (idxAll >= 0) allItems[idxAll] = updated else allItems.add(updated)
+
+        val idxVis = visibleItems.indexOfFirst { it.sku == updated.sku }
+        if (idxVis >= 0) {
+            visibleItems[idxVis] = updated
+            adapter?.notifyItemChanged(idxVis)
+        } else {
+            // If filtered out, refresh list based on current query
+            filterList(edtSearch?.text?.toString().orEmpty())
+        }
+    }
+
+    /* ---------------------------- Your existing helpers ---------------------------- */
 
     private fun seedDemoData() {
         allItems.clear()
@@ -123,9 +267,9 @@ class StockTakingActivity : AppCompatActivity() {
             StockItem(name = "RJ45 Patch 5m", sku = "SKU-1005", expected = 20),
             StockItem(name = "External HDD 1TB", sku = "SKU-1006", expected = 6)
         )
-        // Start counted at 0 for demo
         visibleItems.clear()
         visibleItems += allItems.map { it.copy() }
+        adapter?.notifyDataSetChanged()
     }
 
     private fun filterList(query: String) {
@@ -139,7 +283,7 @@ class StockTakingActivity : AppCompatActivity() {
         adapter?.notifyDataSetChanged()
     }
 
-    // --- Options menu (global actions you already had) ---
+    // Options menu (unchanged)
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_global, menu)
         val white = ContextCompat.getColor(this, R.color.white)
@@ -164,9 +308,20 @@ class StockTakingActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    /* ---------------------------- Mapping ---------------------------- */
+
+    // Map backend row (za.tws.scan.net.StockItem) -> your UI model (local StockItem)
+    private fun NetStockItem.toViewModel(): StockItem =
+        StockItem(
+            name = this.Name ?: "(no name)",
+            sku = this.Sku ?: "(no sku)",
+            expected = this.ExpectedQty ?: 0,
+            counted = this.CountedQty ?: 0
+        )
 }
 
-/* ---------------------------- `Models.kt` & Adapter ---------------------------- */
+/* ---------------------------- Your existing UI model & adapter ---------------------------- */
 
 private data class StockItem(
     val name: String,
@@ -191,8 +346,7 @@ private class StockAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val v = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_stock_row, parent, false)
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_stock_row, parent, false)
         return VH(v)
     }
 
@@ -205,9 +359,8 @@ private class StockAdapter(
 
         val pct = if (item.expected <= 0) 0 else (item.counted * 100 / item.expected).coerceIn(0, 100)
         holder.progress.max = 100
-        holder.progress.setProgress(pct, /*animate=*/true)
+        holder.progress.setProgress(pct, true)
 
-        // Tap to increment; long press to decrement
         holder.itemView.setOnClickListener { onAction(item, RowAction.Increment) }
         holder.itemView.setOnLongClickListener {
             onAction(item, RowAction.Decrement)
