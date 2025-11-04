@@ -138,4 +138,66 @@ interface ApiService {
     suspend fun stockFinish(
         @Path("stockTakeId") stockTakeId: Int
     ): StockFinishResponse
+
+
+    // ---------- DELIVERY ----------
+    @GET("delivery/health")
+    suspend fun deliveryHealth(): Map<String, Any>
+
+    /**
+     * GET /delivery/list
+     * Query params:
+     *  - search: e.g. "PKG-10"
+     *  - status: "To Load" | "Loaded" (optional)
+     *  - top: default 100
+     */
+    @GET("delivery/list")
+    suspend fun deliveryList(
+        @Query("search") search: String? = null,
+        @Query("status") status: String? = null,
+        @Query("top") top: Int = 100
+    ): DeliveryListResponse
+
+    /**
+     * GET /delivery/{packageNumber}
+     * Returns details for a single package (for the bottom sheet).
+     */
+    @GET("delivery/{packageNumber}")
+    suspend fun deliveryGetPackage(
+        @Path("packageNumber") packageNumber: String
+    ): DeliveryPackageNet
+
+    /**
+     * POST /delivery/{packageNumber}/mark-loaded
+     * Marks a package as Loaded and returns the updated row.
+     */
+    @POST("delivery/{packageNumber}/mark-loaded")
+    suspend fun deliveryMarkLoaded(
+        @Path("packageNumber") packageNumber: String
+    ): DeliveryPackageNet
+
+    /**
+     * POST /delivery/{packageNumber}/mark-to-load
+     * Reverts a package back to 'To Load' and returns the updated row.
+     */
+    @POST("delivery/{packageNumber}/mark-to-load")
+    suspend fun deliveryMarkToLoad(
+        @Path("packageNumber") packageNumber: String
+    ): DeliveryPackageNet
+
+    /**
+     * POST /delivery/scan-to-load
+     * Body: { "scannedNumber": "PKG-10023" }
+     * Quick-scan handler that immediately marks loaded.
+     */
+    @POST("delivery/scan-to-load")
+    suspend fun deliveryScanToLoad(
+        @Body body: ScanToLoadRequest
+    ): DeliveryPackageNet
+
+
+    @POST("delivery/{packageNumber}/mark-delivered")
+    suspend fun deliveryMarkDelivered(
+        @Path("packageNumber") packageNumber: String
+    ): DeliveryPackageNet
 }

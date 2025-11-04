@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -36,13 +37,9 @@ import za.tws.scan.net.StockSession
 
 class StockTakingActivity : AppCompatActivity() {
 
-    // --- Views you already had ---
+    // --- Views ---
     private var recycler: RecyclerView? = null
-    private var scanBtn: MaterialButton? = null
-    private var tilSearch: TextInputLayout? = null
-    private var edtSearch: TextInputEditText? = null
-
-    // Current-product card views (from your XML)
+    private var scanBtn: MaterialButton? = null   // matches @+id/btnScanRound include
     private var txtProductTitle: TextView? = null
     private var txtExpected: TextView? = null
     private var txtCounted: TextView? = null
@@ -51,8 +48,9 @@ class StockTakingActivity : AppCompatActivity() {
     private var edtScan: TextInputEditText? = null
     private var btnAddCount: MaterialButton? = null
     private var btnUndoCount: MaterialButton? = null
+    private var fabFinish: ExtendedFloatingActionButton? = null
 
-    // --- Data for your adapter ---
+    // --- Data for adapter ---
     private val allItems = mutableListOf<StockItem>()
     private val visibleItems = mutableListOf<StockItem>()
     private var adapter: StockAdapter? = null
@@ -82,13 +80,9 @@ class StockTakingActivity : AppCompatActivity() {
             insets
         }
 
-        // Bind list/search you already had
+        // Bind views
         recycler = findViewById(R.id.recyclerStock)
-        scanBtn = findViewById(R.id.btnScan) // optional include in your layout
-        tilSearch = findViewById(R.id.tilSearch)
-        edtSearch = findViewById(R.id.edtSearch)
-
-        // Bind current-product card controls from your XML
+        scanBtn = findViewById(R.id.btnScanRound) // <- matches XML include id
         txtProductTitle = findViewById(R.id.txtProductTitle)
         txtExpected = findViewById(R.id.txtExpected)
         txtCounted = findViewById(R.id.txtCounted)
@@ -97,11 +91,12 @@ class StockTakingActivity : AppCompatActivity() {
         edtScan = findViewById(R.id.edtScan)
         btnAddCount = findViewById(R.id.btnAddCount)
         btnUndoCount = findViewById(R.id.btnUndoCount)
+        fabFinish = findViewById(R.id.fabFinish)
 
         // API client (X-API-Key handled by ApiClient interceptors)
         api = ApiClient.create { null }
 
-        // Recycler kept as-is, but row taps call the API now
+        // Recycler
         recycler?.let { rv ->
             rv.layoutManager = LinearLayoutManager(this)
             adapter = StockAdapter(visibleItems) { item, action ->
@@ -113,22 +108,10 @@ class StockTakingActivity : AppCompatActivity() {
             rv.adapter = adapter
         }
 
-        // Scan round include (if you later wire camera)
+        // Optional: scan round include (camera wiring later)
         scanBtn?.setOnClickListener {
             Toast.makeText(this, "Open scanner…", Toast.LENGTH_SHORT).show()
         }
-
-        // Search polish (unchanged)
-        tilSearch?.isEndIconVisible = false
-        tilSearch?.setEndIconOnClickListener { edtSearch?.setText("") }
-        edtSearch?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) = Unit
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                tilSearch?.isEndIconVisible = !s.isNullOrBlank()
-                filterList(s?.toString().orEmpty())
-            }
-        })
 
         // Add/Undo buttons on the current-product card
         btnAddCount?.setOnClickListener {
@@ -140,6 +123,9 @@ class StockTakingActivity : AppCompatActivity() {
             }
         }
         btnUndoCount?.setOnClickListener { undoLast() }
+
+        // Finish session
+        fabFinish?.setOnClickListener { finishSession() }
 
         // Start server session and load initial list
         startSession()
@@ -154,10 +140,8 @@ class StockTakingActivity : AppCompatActivity() {
                     api.stockStart(userId = userId, name = null)
                 }
                 stockTakeId = session.StockTakeId
-
-                // Removed the subtitle so nothing renders under the title
+                // Intentionally keep subtitle null to avoid ghost text under title
                 // supportActionBar?.subtitle = session.Name
-
                 loadItems()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -177,10 +161,27 @@ class StockTakingActivity : AppCompatActivity() {
                 }
                 allItems.clear()
                 allItems += resp.items.map { it.toViewModel() }
-                filterList(edtSearch?.text?.toString().orEmpty())
+                // No search field in this layout, so show all
+                filterList("")
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(this@StockTakingActivity, "Failed to load items", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun finishSession() {
+        val id = stockTakeId ?: return
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    api.stockFinish(stockTakeId = id)
+                }
+                Toast.makeText(this@StockTakingActivity, "Stock take finished", Toast.LENGTH_LONG).show()
+                finish()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this@StockTakingActivity, "Failed to finish session", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -194,10 +195,10 @@ class StockTakingActivity : AppCompatActivity() {
                     api.stockAdd(stockTakeId = id, barcodeOrSku = code, qty = 1)
                 }
                 val updated = updatedNet.toViewModel()
-                // Update current-product card with Expected/Counted
                 renderCurrent(updated)
-                // Merge into list (add or replace)
                 upsertRow(updated)
+                // Clear input after successful add (optional)
+                edtScan?.setText("")
             } catch (e: Exception) {
                 val msg = e.message ?: ""
                 val friendly =
@@ -250,12 +251,10 @@ class StockTakingActivity : AppCompatActivity() {
             visibleItems[idxVis] = updated
             adapter?.notifyItemChanged(idxVis)
         } else {
-            // If filtered out, refresh list based on current query
-            filterList(edtSearch?.text?.toString().orEmpty())
+            // Not visible? Re-filter (no query = show all)
+            filterList("")
         }
     }
-
-    /* ---------------------------- Your existing helpers ---------------------------- */
 
     private fun seedDemoData() {
         allItems.clear()
@@ -311,7 +310,6 @@ class StockTakingActivity : AppCompatActivity() {
 
     /* ---------------------------- Mapping ---------------------------- */
 
-    // Map backend row (za.tws.scan.net.StockItem) -> your UI model (local StockItem)
     private fun NetStockItem.toViewModel(): StockItem =
         StockItem(
             name = this.Name ?: "(no name)",
@@ -321,7 +319,7 @@ class StockTakingActivity : AppCompatActivity() {
         )
 }
 
-/* ---------------------------- Your existing UI model & adapter ---------------------------- */
+/* ---------------------------- UI model & adapter ---------------------------- */
 
 private data class StockItem(
     val name: String,

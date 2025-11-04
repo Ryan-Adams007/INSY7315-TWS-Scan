@@ -30,29 +30,31 @@
 
     <!-- Content -->
     <LinearLayout
+        android:id="@+id/contentRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Search + round scan button -->
+        <!-- Scan + Manual Entry row -->
         <LinearLayout
+            android:id="@+id/scanRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingTop="12dp"
-            android:paddingBottom="4dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:paddingBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilSearch"
+                android:id="@+id/tilPackageEntry"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Search package number"
+                android:hint="Enter or scan package number"
                 app:boxBackgroundColor="@color/colorSurface"
                 app:boxStrokeColor="@color/dividerColor"
                 app:startIconDrawable="@drawable/ic_search_inset"
@@ -60,7 +62,7 @@
                 app:startIconCheckable="false">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/edtSearch"
+                    android:id="@+id/edtPackageNumber"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textNoSuggestions"
@@ -72,16 +74,101 @@
                     android:textSize="14sp"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Reuse your round scan component -->
+            <!-- Round Scan button -->
             <include
-                android:id="@+id/btnScanPackageSearch"
+                android:id="@+id/btnScanPackage"
                 layout="@layout/view_round_button_scan"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
 
-        <!-- Filter chips -->
+        <!-- Summary strip -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            app:cardBackgroundColor="@color/colorSurface"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/dividerColor"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:weightSum="3">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/txtTotal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/txtToLoad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="To Load"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/txtLoaded"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/textPrimary"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Loaded"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Filters (added Delivered) -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupFilters"
             android:layout_width="match_parent"
@@ -124,6 +211,18 @@
                 app:chipStrokeColor="@color/chipGreenBorder"
                 app:chipStrokeWidth="1dp"
                 android:textColor="@color/chipGreenText" />
+
+            <!-- Use neutral styling for Delivered to avoid new colour deps -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipDelivered"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delivered"
+                app:chipBackgroundColor="@color/chipNeutralBackground"
+                app:chipStrokeColor="@color/dividerColor"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/textPrimary" />
         </com.google.android.material.chip.ChipGroup>
 
         <!-- Packages list -->
@@ -135,18 +234,29 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:clipToPadding="false"/>
+
+        <!-- Empty state (optional) -->
+        <TextView
+            android:id="@+id/emptyView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            android:text="No packages found."
+            android:textAlignment="center"
+            android:textColor="@color/textSecondary"
+            android:visibility="gone"/>
     </LinearLayout>
 
-    <!-- Quick Scan FAB -->
+    <!-- Primary FAB: scan for Load/Deliver -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabQuickScan"
+        android:id="@+id/fabScan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Scan to Load"
+        android:text="Scan Package"
         android:textColor="@color/white"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="24dp"
-        android:contentDescription="Scan a package to mark loaded"
+        android:contentDescription="Scan a package"
         app:icon="@drawable/ic_scan"
         app:iconTint="@color/white"
         app:backgroundTint="@color/colorSecondary"

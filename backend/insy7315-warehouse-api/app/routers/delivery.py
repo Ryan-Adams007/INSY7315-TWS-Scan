@@ -84,3 +84,12 @@ def scan_to_load(
     if not rows:
         raise HTTPException(status_code=400, detail="Scan failed")
     return rows[0]
+
+
+# app/routers/delivery.py
+@router.post("/{packageNumber}/mark-delivered")
+def mark_delivered(packageNumber: str, _=Depends(require_key)):
+    rows = exec_sp("dbo.usp_Delivery_MarkDelivered", [packageNumber])
+    if not rows:
+        raise HTTPException(status_code=400, detail="Could not mark delivered")
+    return rows[0]
