@@ -1,3 +1,16 @@
+<!-- app/src/main/res/values/strings.xml -->
 <resources>
-    <string name="app_name">TWS-Scan</string>
+    <string name="app_name">TWS Scan</string>
+    <string name="warehouse_ops">Warehouse Ops</string>
+    <string name="picking">Picking</string>
+    <string name="packing">Packing</string>
+    <string name="receipts">Receipts</string>
+    <string name="delivery">Delivery</string>
+    <string name="stock_taking">Stock Taking</string>
+
+    <!-- Toolbar menu -->
+    <string name="search">Search</string>
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Sign out</string>
 </resources>

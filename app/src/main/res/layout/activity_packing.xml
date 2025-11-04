@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
+
+    <!-- App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        app:elevation="4dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            style="@style/Widget.Material3.Toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:title="Packing"
+            app:titleTextColor="@color/white"
+            app:menu="@menu/menu_global"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Current Package Header -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCurrentPackage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/colorSurface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/dividerColor"
+                app:strokeWidth="1dp"
+                app:cardElevation="6dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/txtPackageTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Current package"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/textPrimary"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="8dp">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPackageId"
+                            style="@style/Widget.Material3.Chip.Suggestion"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="No package set"
+                            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                            app:chipBackgroundColor="@color/colorSurface"
+                            app:chipStrokeColor="@color/dividerColor"
+                            app:chipStrokeWidth="1dp"
+                            app:checkedIconVisible="false"
+                            app:closeIconVisible="false"/>
+
+                        <include
+                            android:id="@+id/btnScanPackage"
+                            layout="@layout/view_round_button_scan"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
+
+                    <!-- Optional quick stats -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/txtPkgCount"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Items: 0"
+                            android:textColor="@color/textSecondary"/>
+
+                        <TextView
+                            android:id="@+id/txtPkgWeight"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Weight: –"
+                            android:textColor="@color/textSecondary"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- WHAT TO PACK (staged lines) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardWhatToPack"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/colorSurface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/dividerColor"
+                app:strokeWidth="1dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/txtStagedTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="What to pack"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/textPrimary"/>
+
+                    <TextView
+                        android:id="@+id/txtStagedSummary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="0 lines, 0 remaining"
+                        android:textColor="@color/textSecondary"/>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerStaged"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Item Serial Scan -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilItemSerial"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Scan or enter item serial"
+                app:boxBackgroundColor="@color/colorSurface"
+                app:boxStrokeColor="@color/dividerColor"
+                app:endIconMode="custom"
+                app:endIconDrawable="@android:drawable/ic_menu_camera"
+                app:endIconContentDescription="Scan item">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtItemSerial"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textNoSuggestions"
+                    android:maxLines="1"
+                    android:textColor="@color/textPrimary"
+                    android:textColorHint="@color/textSecondary"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Qty stepper -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Quantity"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"/>
+
+                <include
+                    android:id="@+id/btnQtyMinus"
+                    layout="@layout/view_round_button_minus" />
+
+                <TextView
+                    android:id="@+id/txtQty"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"/>
+
+                <include
+                    android:id="@+id/btnQtyPlus"
+                    layout="@layout/view_round_button_plus" />
+            </LinearLayout>
+
+            <!-- Add to package + Undo row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddToPackage"
+                    style="@style/Tws.PrimaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Add to Package"
+                    app:icon="@drawable/ic_box_new"
+                    app:iconTint="@color/white"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnUndo"
+                    style="@style/Tws.SmallTonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Undo"
+                    app:icon="@drawable/ic_undo"
+                    app:iconTint="@color/black"/>
+            </LinearLayout>
+
+            <!-- Divider label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Items in this package"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"/>
+
+            <!-- Items list -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerPackageItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"/>
+
+            <!-- Package actions (start new, clear) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStartNewPackage"
+                    style="@style/Tws.SmallTonalButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Start New Package"
+                    app:icon="@drawable/ic_box_new"
+                    app:iconTint="@color/black"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClearPackage"
+                    style="@style/Tws.SmallTonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Clear"
+                    app:icon="@drawable/ic_trash"
+                    app:iconTint="@color/black"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Seal / Print FAB -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabSealAndPrint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seal and Print"
+        android:textColor="@color/white"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:contentDescription="Seal and print label"
+        app:icon="@drawable/ic_print"
+        app:iconTint="@color/white"
+        app:iconPadding="8dp"
+        app:iconGravity="start"
+        app:backgroundTint="@color/colorSecondary"
+        android:layout_gravity="bottom|end"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

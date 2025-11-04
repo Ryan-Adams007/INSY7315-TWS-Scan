@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBackground">
+
+    <!-- App Bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        app:elevation="4dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            style="@style/Widget.Material3.Toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:navigationIconTint="@color/white"
+            app:title="@string/stock_taking"
+            app:titleTextColor="@color/white"
+            app:menu="@menu/menu_global"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Current product card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCurrentProduct"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="@color/colorSurface"
+                app:cardCornerRadius="16dp"
+                app:strokeColor="@color/dividerColor"
+                app:strokeWidth="1dp"
+                app:cardElevation="6dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/txtProductTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No product selected"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/textPrimary"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:id="@+id/txtExpected"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Expected: 0"
+                            android:textColor="@color/textSecondary"/>
+
+                        <TextView
+                            android:id="@+id/txtCounted"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Counted: 0"
+                            android:textColor="@color/textSecondary"/>
+                    </LinearLayout>
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/progressCount"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="8dp"
+                        android:indeterminate="false"
+                        android:max="100"
+                        android:progress="0"
+                        app:trackCornerRadius="8dp"
+                        app:indicatorColor="@color/colorSecondary"
+                        app:trackColor="@color/dividerColor"/>
+
+                    <!-- Scan field -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilScan"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="Scan or enter product barcode"
+                        app:boxBackgroundColor="@color/colorSurface"
+                        app:boxStrokeColor="@color/dividerColor"
+                        app:endIconMode="custom"
+                        app:endIconDrawable="@android:drawable/ic_menu_camera"
+                        app:endIconContentDescription="Scan">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edtScan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textNoSuggestions"
+                            android:maxLines="1"
+                            android:textColor="@color/textPrimary"
+                            android:textColorHint="@color/textSecondary"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Controls: round scan + add/undo -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <!-- Reuse your round scan include -->
+                        <include
+                            android:id="@+id/btnScanRound"
+                            layout="@layout/view_round_button_scan"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:contentDescription="Scan barcode"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddCount"
+                            style="@style/Tws.PrimaryButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:text="Add Count"
+                            app:icon="@drawable/ic_stock_taking"
+                            app:iconTint="@color/white"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnUndoCount"
+                            style="@style/Tws.SmallTonalButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Undo"
+                            app:icon="@drawable/ic_undo"
+                            app:iconTint="@color/black"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Product list -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Products"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerStock"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Finish FAB -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabFinish"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Finish Session"
+        android:textColor="@color/white"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="24dp"
+        app:icon="@drawable/ic_done"
+        app:iconTint="@color/white"
+        app:backgroundTint="@color/colorSecondary"
+        android:layout_gravity="bottom|end"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
